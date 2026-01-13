@@ -1967,6 +1967,9 @@
     // HERO ANIMATIONS
     // ============================================
     function initHero() {
+        // Ensure centering is handled by GSAP to prevent overwriting by ticker
+        gsap.set(".pen-hero, .pen-flavor", { xPercent: -50, yPercent: -50 });
+
         // Intro animation
         const tl = gsap.timeline();
         tl.from('.grid-line', { scaleY: 0, transformOrigin: 'top', duration: 0.6, stagger: 0.06, ease: "power3.inOut" })
