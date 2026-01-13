@@ -126,6 +126,110 @@
         }
 
         /* ============================================
+           AGE GATE
+           ============================================ */
+        .age-gate-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(242, 239, 236, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 200000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .age-gate-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .age-gate-modal {
+            background: var(--bg-cream);
+            padding: 60px;
+            border-radius: 30px;
+            border: 1px solid var(--gold);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            transform: scale(1);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: auto;
+        }
+
+        .age-gate-overlay.hidden .age-gate-modal {
+            transform: scale(0.95);
+        }
+
+        .age-gate__logo {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--text-dark);
+        }
+
+        .age-gate-modal h2 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            color: var(--text-dark);
+        }
+
+        .age-gate-modal p {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .age-gate__buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .age-gate__btn {
+            padding: 16px 40px;
+            border-radius: 50px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: none;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gold);
+            font-weight: 600;
+        }
+
+        .age-gate__btn--primary {
+            background: var(--gold);
+            color: #fff;
+        }
+
+        .age-gate__btn--primary:hover {
+            background: var(--gold-deep);
+            border-color: var(--gold-deep);
+            transform: translateY(-2px);
+        }
+
+        .age-gate__btn--outline {
+            background: transparent;
+            color: var(--text-dark);
+        }
+
+        .age-gate__btn--outline:hover {
+            background: rgba(197, 160, 89, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* ============================================
            GLOBAL EFFECTS
            ============================================ */
         .noise-overlay {
@@ -148,7 +252,7 @@
             border-radius: 50%;
             position: fixed;
             pointer-events: none;
-            z-index: 99999;
+            z-index: 200001; /* Higher than age gate */
             transform: translate(-50%, -50%);
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             opacity: 0;
@@ -181,7 +285,6 @@
         .nav-top.scrolled {
             background: rgba(242, 241, 234, 0.8);
             backdrop-filter: blur(10px);
-            padding: 20px 40px;
         }
 
         .logo {
@@ -1309,6 +1412,18 @@
     <div class="preloader__text">Hasheesh</div>
 </div>
 
+<div class="age-gate-overlay hidden" id="age-gate">
+    <div class="age-gate-modal">
+        <div class="age-gate__logo">HASHEESH.</div>
+        <h2>Age Verification</h2>
+        <p>You must be 21 years or older to view this site.</p>
+        <div class="age-gate__buttons">
+            <button id="btn-yes" class="age-gate__btn age-gate__btn--primary hover-trigger">I am 21+</button>
+            <button id="btn-no" class="age-gate__btn age-gate__btn--outline hover-trigger">I am under 21</button>
+        </div>
+    </div>
+</div>
+
 <div class="noise-overlay"></div>
 
 <div class="cursor"></div>
@@ -1687,9 +1802,38 @@
     // ============================================
     function initPreloader() {
         const preloader = document.getElementById('preloader');
+        const ageGate = document.getElementById('age-gate');
+        // Force show for demo by ignoring localStorage
+        const isVerified = false;
+
         window.scrollTo(0, 0); // Force top on init
 
+        if (!isVerified) {
+            ageGate.classList.remove('hidden');
+        } else {
+            ageGate.classList.add('hidden');
+        }
+
         window.addEventListener('load', () => {
+            if (isVerified) {
+                startSite();
+            }
+        });
+
+        // Age Gate Logic
+        document.getElementById('btn-yes').addEventListener('click', () => {
+            localStorage.setItem('ageVerified', 'true');
+            gsap.to(ageGate, { opacity: 0, duration: 0.5, onComplete: () => {
+                ageGate.classList.add('hidden');
+                startSite();
+            }});
+        });
+
+        document.getElementById('btn-no').addEventListener('click', () => {
+            window.location.href = "https://google.com";
+        });
+
+        function startSite() {
             setTimeout(() => {
                 preloader.classList.add('hidden');
                 // Wait for preloader to fade out before enabling scroll
@@ -1700,7 +1844,7 @@
                     ScrollTrigger.refresh();
                 }, 800); // Match CSS transition duration
             }, 800);
-        });
+        }
     }
 
     // ============================================
